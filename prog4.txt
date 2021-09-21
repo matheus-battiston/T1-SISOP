@@ -1,0 +1,12 @@
+.code
+  load Variable
+  ponto1:
+  sub #1
+  syscall 1
+  BRPOS ponto1
+  syscall 0
+.endcode
+
+.data
+  Variable 10
+.enddata
