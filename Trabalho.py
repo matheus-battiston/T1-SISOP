@@ -72,7 +72,6 @@ class Processador:
 
         comando = self.running.instrucoes[self.PC]
         self.PC +=1
-
         print(comando)
         if comando[0] == "add":
             if comando[1][0] == "#":
@@ -132,6 +131,7 @@ class Processador:
                 self.exit = self.running
                 self.processos.remove(self.running)
                 self.running = None
+                self.contador = 0
 
             elif comando[1] == "1":
                 print("PRINT DO PROGRAMA: ", self.acumulador)
@@ -250,7 +250,7 @@ def executar(SO):
 def executar_RR(SO):
     while not SO.check_empty():
         for x in SO.ready:
-            print(x.ref,"pronto")
+            print(x.ref,"pronto", SO.contador)
         for x in SO.blocked:
             print(x.ref,"bloqueado por",x.bloqueado, "unidades de tempo")
         if SO.running != None:
@@ -273,6 +273,7 @@ def executar_RR(SO):
                 SO.ready.append(SO.running)
                 SO.running.estado = "Ready"
                 SO.running = None
+
         
         SO.check_timing()
         
@@ -292,7 +293,7 @@ if algoritmo == 'P' or algoritmo == 'p':
     arquivos.append((x,z))
     while (1):
         y = str(input("Voce deseja adicionar outro arquivo? S/N "))
-        if y == 'N':
+        if y == 'N' or y == 'n':
             break
         elif y == "S":
             x = str(input("Digite o nome do arquivo: "))
