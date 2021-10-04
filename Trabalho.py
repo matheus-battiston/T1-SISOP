@@ -319,9 +319,10 @@ def executar_RR(SO):
         if SO.contador == 0 and len(SO.ready)>0:
             SO.add_run(SO.ready[0])
             SO.contador -= 1
+            SO.running.cont_running += 1
             for x in SO.ready:
                 x.cont_waiting += 1
-            SO.running.cont_running += 1
+            
             SO.comando()
             if SO.contador == 0 and SO.running != None:
                 SO.salva_contexto(SO.running)
@@ -331,10 +332,11 @@ def executar_RR(SO):
 
         elif SO.running != None:
             SO.contador -= 1
+            SO.running.cont_running += 1
             SO.comando()
             for x in SO.ready:
                 x.cont_waiting += 1
-            SO.running.cont_running += 1
+            
             if SO.contador == 0 and SO.running != None:
                 SO.salva_contexto(SO.running)
                 SO.ready.append(SO.running)
