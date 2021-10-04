@@ -309,7 +309,7 @@ def executar_RR(SO):
         SO.soma_TurnAround()
 
         for x in SO.ready:
-            print(x.ref,"pronto", SO.contador)
+            print(x.ref,"pronto")
         for x in SO.blocked:
             print(x.ref,"bloqueado por",x.bloqueado, "unidades de tempo")
             x.cont_blocked += 1
