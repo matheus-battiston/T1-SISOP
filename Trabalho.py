@@ -184,8 +184,6 @@ class Processador:
         return False
 
     def soma_TurnAround(self):
-        for x in self.admissao:
-            x[0].cont_turnaround +=1
         for x in self.ready:
             x.cont_turnaround +=1
         for x in self.blocked:
