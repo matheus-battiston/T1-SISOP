@@ -1,6 +1,5 @@
 #Matheus Felipe Battiston e Henrique Andreata
 
-"""Colocar o contador do blocked como tupla (processo,tempobloqueado + passo atual)"""
 import random
 
 class Processador:
@@ -278,7 +277,7 @@ def executar(SO):
             print(x.ref,"bloqueado por",x.bloqueado, "unidades de tempo")
             x.cont_blocked += 1
         for x in SO.admissao:
-            print(x[0].ref, "Esta na fila de admissão, faltam ", x[1], "unidades de tempo")
+            print(x[0].ref, "Esta na fila de admissão, faltam ", int(x[1])-cont_exec, "unidades de tempo")
         if SO.running != None:
             print(SO.running.ref, "rodando")
             SO.running.cont_running += 1
