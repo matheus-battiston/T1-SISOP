@@ -118,7 +118,10 @@ class Processador:
             self.mult(int(op))
 
         elif comando[0] == "load":
-            self.acumulador = int(self.running.variaveis[comando[1]])
+            if comando[1][0] == "#":
+                self.acumulador = comando[1][1:]
+            else:
+                self.acumulador = int(self.running.variaveis[comando[1]])
         elif comando[0] == "store":
             self.running.variaveis[comando[1]] = self.acumulador
         elif comando[0] == "BRANY":
@@ -141,7 +144,7 @@ class Processador:
             if comando[1] == "0":
                 
                 print("Processo ", self.running.ref, "terminou. ", "TurnAround: ", self.running.cont_turnaround, "Waiting Time: ", self.running.cont_waiting, "Running Time: ", self.running.cont_running, "Bloqueado: ", self.running.cont_blocked)
-                self.exit = self.running
+                self.exit.append(self.running)
                 self.processos.remove(self.running)
                 self.running = None
                 self.contador = 0
@@ -283,7 +286,16 @@ def executar(SO):
         else:
             print("Nenhum programa no processador")
 
+        print( "=============================================")
         cont_exec += 1
+    
+    
+    
+    
+    print("Resumo da execução: ")
+    for x in SO.exit:
+        print("Processo ", x.ref, "TurnAround: ", x.cont_turnaround, "Waiting Time: ", x.cont_waiting, "Running Time: ", x.cont_running, "Bloqueado: ", x.cont_blocked)
+        
 
 def executar_RR(SO):
     cont_exec = 0
@@ -331,6 +343,10 @@ def executar_RR(SO):
 
         cont_exec += 1        
 
+    print("Resumo da execução: ")
+    for x in SO.exit:
+        print("Processo ", x.ref, "TurnAround: ", x.cont_turnaround, "Waiting Time: ", x.cont_waiting, "Running Time: ", x.cont_running, "Bloqueado: ", x.cont_blocked)
+        
 
 arquivos = []
 codigo = []
@@ -346,7 +362,7 @@ if algoritmo == 'P' or algoritmo == 'p':
         y = str(input("Voce deseja adicionar outro arquivo? S/N "))
         if y == 'N' or y == 'n':
             break
-        elif y == "S":
+        elif y == "S" or y == 's':
             x = str(input("Digite o nome do arquivo: "))
             z = str(input("Qual a prioridade do processo? "))
             a = str(input("Qual o arrivalTime do processo: "))
