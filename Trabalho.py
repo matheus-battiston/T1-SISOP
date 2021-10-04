@@ -3,6 +3,7 @@ import random
 
 class Processador:
     def __init__(self):
+        self.admissao= []
         self.processos = []
         self.ready = []
         self.blocked = []
@@ -128,6 +129,7 @@ class Processador:
         elif comando[0] == "syscall":
             if comando[1] == "0":
                 
+                print("Processo ", self.running.ref, "terminou. ", "TurnAround: ", self.running.cont_turnaround, "Waiting Time: ", self.running.cont_waiting, "Running Time: ", self.running.cont_running, "Bloqueado: ", self.running.cont_blocked)
                 self.exit = self.running
                 self.processos.remove(self.running)
                 self.running = None
@@ -165,10 +167,20 @@ class Processador:
 
 
     def check_empty(self):
-        if len(self.ready) == 0 and len(self.blocked) == 0 and self.running == None:
+        if len(self.ready) == 0 and len(self.blocked) == 0 and self.running == None and len(self.admissao) == 0:
             return True
 
         return False
+
+    def soma_TurnAround(self):
+        for x in self.admissao:
+            x[0].cont_turnaround +=1
+        for x in self.ready:
+            x.cont_turnaround +=1
+        for x in self.blocked:
+            x.cont_turnaround +=1
+        if self.running != None:
+            self.running.cont_turnaround +=1
 
     def check_timing(self):
         for x in self.blocked:
@@ -190,6 +202,10 @@ class PCB:
         self.acumulador = 0
         self.estado = "Ready"
         self.quantum = 0
+        self.cont_turnaround = 0
+        self.cont_waiting = 0
+        self.cont_running = 0
+        self.cont_blocked = 0
 
     def set_instrucoes(self,codigo):
         inst = []
@@ -233,31 +249,61 @@ def leitura (arquivo):
     return codigo
 
 def executar(SO):
+    cont_exec = 0
     while not SO.check_empty():
-        for x in SO.ready:
-            print(x.ref, "pronto")
-        for x in SO.blocked:
-            print(x.ref,"bloqueado por",x.bloqueado, "unidades de tempo")
+        print("Passo de simulação ", cont_exec)
+        for x in SO.admissao:
+            if int(x[1]) == cont_exec:
+                SO.ready.append(x[0])
+                SO.admissao.remove(x)
+                
+        SO.check_timing()
+        SO.soma_TurnAround()
         if len(SO.ready) > 0:
             SO.check_prioridade()
+
+        for x in SO.ready:
+            print(x.ref, "pronto")
+            x.cont_waiting += 1
+        for x in SO.blocked:
+            print(x.ref,"bloqueado por",x.bloqueado, "unidades de tempo")
+            x.cont_blocked += 1
         if SO.running != None:
             print(SO.running.ref, "rodando")
+            SO.running.cont_running += 1
             SO.comando()
         else:
             print("Nenhum programa no processador")
-        SO.check_timing()
+
+        cont_exec += 1
 
 def executar_RR(SO):
+    cont_exec = 0
     while not SO.check_empty():
+
+        print("Passo de simulação ", cont_exec)
+        for x in SO.admissao:
+            if int(x[1]) == cont_exec:
+                SO.ready.append(x[0])
+                SO.admissao.remove(x)
+
+        SO.check_timing()
+        SO.soma_TurnAround()
+
         for x in SO.ready:
             print(x.ref,"pronto", SO.contador)
         for x in SO.blocked:
             print(x.ref,"bloqueado por",x.bloqueado, "unidades de tempo")
+            x.cont_blocked += 1
         if SO.running != None:
             print(SO.running.ref, "rodando")
+
         if SO.contador == 0 and len(SO.ready)>0:
             SO.add_run(SO.ready[0])
             SO.contador -= 1
+            for x in SO.ready:
+                x.cont_waiting += 1
+            SO.running.cont_running += 1
             SO.comando()
             if SO.contador == 0 and SO.running != None:
                 SO.salva_contexto(SO.running)
@@ -268,19 +314,17 @@ def executar_RR(SO):
         elif SO.running != None:
             SO.contador -= 1
             SO.comando()
+            for x in SO.ready:
+                x.cont_waiting += 1
+            SO.running.cont_running += 1
             if SO.contador == 0 and SO.running != None:
                 SO.salva_contexto(SO.running)
                 SO.ready.append(SO.running)
                 SO.running.estado = "Ready"
                 SO.running = None
 
-        
-        SO.check_timing()
-        
-        
+        cont_exec += 1        
 
-
-        
 
 arquivos = []
 codigo = []
@@ -290,7 +334,8 @@ algoritmo = str(input("Qual tipo de politica deve ser aplicada? Round Robin 'R' 
 if algoritmo == 'P' or algoritmo == 'p':
     x = str(input("Digite o nome do primeiro arquivo: "))
     z = str(input("Qual a prioridade do processo? "))
-    arquivos.append((x,z))
+    a = str(input("Qual o arrivalTime do processo: "))
+    arquivos.append((x,z,a))
     while (1):
         y = str(input("Voce deseja adicionar outro arquivo? S/N "))
         if y == 'N' or y == 'n':
@@ -298,7 +343,10 @@ if algoritmo == 'P' or algoritmo == 'p':
         elif y == "S":
             x = str(input("Digite o nome do arquivo: "))
             z = str(input("Qual a prioridade do processo? "))
-            arquivos.append((x,z))
+            a = str(input("Qual o arrivalTime do processo: "))
+
+
+            arquivos.append((x,z,a))
         else:
             print("Resposta invalida")
 
@@ -314,16 +362,17 @@ if algoritmo == 'P' or algoritmo == 'p':
         proc[index].prioridade = x[1]
 
 
-    for x in proc:
+    for index, x in enumerate(proc):
         SO.processos.append(x)
-        SO.add_ready(x)
+        SO.admissao.append((x,arquivos[index][2]))
 
     executar(SO)
 
 elif algoritmo == 'R' or algoritmo == 'r':
     x = str(input("Digite o nome do primeiro arquivo: "))
     z = str(input("Quantas unidades de tempo o processo deve executar? "))
-    arquivos.append((x,z))
+    a = str(input("Qual o arrivalTime do processo: "))
+    arquivos.append((x,z,a))
     while (1):
         y = str(input("Voce deseja adicionar outro arquivo? S/N "))
         if y == 'N' or y == 'n':
@@ -331,7 +380,8 @@ elif algoritmo == 'R' or algoritmo == 'r':
         elif y == "S" or y == 's':
             x = str(input("Digite o nome do arquivo: "))
             z = str(input("Quantas unidades de tempo o processo deve executar? "))
-            arquivos.append((x,z))
+            a = str(input("Qual o arrivalTime do processo: "))
+            arquivos.append((x,z,a))
         else:
             print("Resposta invalida")
 
@@ -346,9 +396,9 @@ elif algoritmo == 'R' or algoritmo == 'r':
         proc[index].ref = len(proc)
         proc[index].quantum = int(x[1])
 
-    for x in proc:
+    for index, x in enumerate(proc):
         SO.processos.append(x)
-        SO.ready.append(x)
+        SO.admissao.append((x,arquivos[index][2]))
 
     executar_RR(SO)
 else:
