@@ -1,4 +1,6 @@
-#Matheus Felipe Battiston
+#Matheus Felipe Battiston e Henrique Andreata
+
+"""Colocar o contador do blocked como tupla (processo,tempobloqueado + passo atual)"""
 import random
 
 class Processador:
@@ -12,6 +14,16 @@ class Processador:
         self.acumulador = 0
         self.PC = 0
         self.contador = 0
+
+    def check_admissao (self,cont_exec):
+        removidos = []
+        for x in self.admissao:
+            if int(x[1]) == cont_exec:
+                self.ready.append(x[0])
+                removidos.append(x)
+
+        for x in removidos:
+            self.admissao.remove(x)
 
     def add_ready(self,processo):
         add = 0
@@ -111,7 +123,7 @@ class Processador:
         elif comando[0] == "store":
             self.running.variaveis[comando[1]] = self.acumulador
         elif comando[0] == "BRANY":
-            print("pc ",self.running.labels[comando[1]])
+
             self.PC = self.running.labels[comando[1]]
 
         elif comando[0] == "BRZERO":
@@ -252,10 +264,7 @@ def executar(SO):
     cont_exec = 0
     while not SO.check_empty():
         print("Passo de simulação ", cont_exec)
-        for x in SO.admissao:
-            if int(x[1]) == cont_exec:
-                SO.ready.append(x[0])
-                SO.admissao.remove(x)
+        SO.check_admissao(cont_exec)
                 
         SO.check_timing()
         SO.soma_TurnAround()
@@ -268,6 +277,8 @@ def executar(SO):
         for x in SO.blocked:
             print(x.ref,"bloqueado por",x.bloqueado, "unidades de tempo")
             x.cont_blocked += 1
+        for x in SO.admissao:
+            print(x[0].ref, "Esta na fila de admissão, faltam ", x[1], "unidades de tempo")
         if SO.running != None:
             print(SO.running.ref, "rodando")
             SO.running.cont_running += 1
@@ -282,10 +293,8 @@ def executar_RR(SO):
     while not SO.check_empty():
 
         print("Passo de simulação ", cont_exec)
-        for x in SO.admissao:
-            if int(x[1]) == cont_exec:
-                SO.ready.append(x[0])
-                SO.admissao.remove(x)
+        SO.check_admissao(cont_exec)
+
 
         SO.check_timing()
         SO.soma_TurnAround()
